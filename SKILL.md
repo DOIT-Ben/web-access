@@ -12,6 +12,26 @@ metadata:
 
 # web-access Skill
 
+## Active Root Routing
+
+这是当前技能库的联网总入口。除非用户明确点名某个下游技能，否则先用本技能判断路线：
+
+| 用户意图 | 默认路线 |
+|---|---|
+| 普通联网搜索、查资料、看网页、最新信息 | `web-access` 自己完成，优先一手来源 |
+| 已知 URL，需要正文/文档/站点内容批量提取 | 转 `firecrawl`，再按场景选择 search/scrape/map/crawl/download |
+| 用户明确说 Firecrawl 或需要 CLI 输出文件 | 转 `firecrawl` 系列 |
+| 用户明确说 AutoGLM/智谱/GLM 搜索/本地 token 服务 | 转 `autoglm-websearch` 或 `autoglm-deepresearch` |
+| 图片素材搜索 | 转 `autoglm-search-image`，除非用户指定其他图片来源 |
+| 需要用户当前 Chrome 登录态、cookie、Google/平台账号、OAuth、邮件、云盘、后台或私有内容访问 | 使用本技能 CDP 路线，接管当前浏览器登录态 |
+| 明确要求隔离多账号或指定 Chrome profile | 转 `browser-use`，显式使用 `--session` + `--profile` |
+| 本地 Web 应用测试、localhost 截图、QA、部署验证 | 转 `gstack` / `browse` / `qa`，不要用联网搜索路线 |
+| 明确要求 browser-use 多账号/指定 Chrome profile | 转 `browser-use` |
+
+不要让 `firecrawl-*`、`autoglm-*`、`gstack` 子技能抢普通联网任务；它们是明确路线或专用场景。
+
+账号默认约定：用户主账号为当前 Chrome 的 `Default / 您的 Chrome`，默认通过 CDP 接管当前浏览器登录态，不复制 `Default` Profile。操作 Google 账号前先打开 `https://myaccount.google.com` 核对身份；只有用户明确要求隔离多账号时，才改用 `browser-use --session <名称> --profile "<Profile>" open <URL>`。
+
 ## 前置检查
 
 在开始联网操作前，先检查 CDP 模式可用性：
